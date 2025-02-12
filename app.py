@@ -5,9 +5,6 @@ from datetime import datetime
 import os
 from docx import Document  # Per Word
 import pdfkit  # Per PDF
-import sqlite3  # add for database
-import DATABASE_URL  # add for database
-from DATABASE_URL import extras  # add for database
 
 app = Flask(__name__)
 
@@ -24,7 +21,8 @@ app.jinja_env.filters['strftime'] = strftime_filter
 def get_db_connection():
     db_url = os.environ.get("DATABASE_URL")
     if db_url:  # Usa PostgreSQL se DATABASE_URL è impostato
-        return DATABASE_URL.connect(db_url, sslmode='require', cursor_factory=extras.RealDictCursor)
+        import psycopg2
+        return psycopg2.connect(db_url, sslmode='require')
     else:  # Usa SQLite in locale
         return sqlite3.connect('data.db', check_same_thread=False)
 
@@ -32,7 +30,8 @@ def get_db_connection():
 def init_db():
     db_url = os.environ.get("DATABASE_URL")
     if db_url:  # Usa PostgreSQL
-        with DATABASE_URL.connect(db_url, sslmode='require') as conn:
+        import psycopg2
+        with psycopg2.connect(db_url, sslmode='require') as conn:
             with conn.cursor() as cur:
                 cur.execute('''
                     CREATE TABLE IF NOT EXISTS tasks (
@@ -69,15 +68,25 @@ def generate_weekly_report():
             WHERE status = 'Done'
             AND completed_at >= datetime('now', '-7 days')
         ''').fetchall()
+
         report = []
         for task in tasks:
-            task_dict = {
-                'title': task['title'],
-                'priority': task['priority'],
-                'created_at': task['created_at'],
-                'started_at': task['started_at'],
-                'completed_at': task['completed_at']
-            }
+            if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
+                task_dict = {
+                    'title': task[0],
+                    'priority': task[1],
+                    'created_at': task[2],
+                    'started_at': task[3],
+                    'completed_at': task[4]
+                }
+            else:  # Se usi PostgreSQL
+                task_dict = {
+                    'title': task['title'],
+                    'priority': task['priority'],
+                    'created_at': task['created_at'],
+                    'started_at': task['started_at'],
+                    'completed_at': task['completed_at']
+                }
             report.append(task_dict)
         return report
     finally:
@@ -126,12 +135,21 @@ def add_task():
 def update_task(task_id, new_status):
     conn = get_db_connection()
     try:
-        if new_status == 'In Progress':
-            conn.execute('UPDATE tasks SET status = ?, started_at = ? WHERE id = ?', ('In Progress', datetime.now(), task_id))
-        elif new_status == 'Done':
-            conn.execute('UPDATE tasks SET status = ?, completed_at = ? WHERE id = ?', ('Done', datetime.now(), task_id))
-        else:
-            conn.execute('UPDATE tasks SET status = ? WHERE id = ?', (new_status, task_id))
+        if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
+            if new_status == 'In Progress':
+                conn.execute('UPDATE tasks SET status = ?, started_at = ? WHERE id = ?', ('In Progress', datetime.now(), task_id))
+            elif new_status == 'Done':
+                conn.execute('UPDATE tasks SET status = ?, completed_at = ? WHERE id = ?', ('Done', datetime.now(), task_id))
+            else:
+                conn.execute('UPDATE tasks SET status = ? WHERE id = ?', (new_status, task_id))
+        else:  # Se usi PostgreSQL
+            with conn.cursor() as cur:
+                if new_status == 'In Progress':
+                    cur.execute('UPDATE tasks SET status = %s, started_at = %s WHERE id = %s', ('In Progress', datetime.now(), task_id))
+                elif new_status == 'Done':
+                    cur.execute('UPDATE tasks SET status = %s, completed_at = %s WHERE id = %s', ('Done', datetime.now(), task_id))
+                else:
+                    cur.execute('UPDATE tasks SET status = %s WHERE id = %s', (new_status, task_id))
         conn.commit()
     except Exception as e:
         print(f"Errore durante l'aggiornamento della task: {e}")
@@ -144,7 +162,11 @@ def update_task(task_id, new_status):
 def delete_task(task_id):
     conn = get_db_connection()
     try:
-        conn.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+        if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
+            conn.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+        else:  # Se usi PostgreSQL
+            with conn.cursor() as cur:
+                cur.execute('DELETE FROM tasks WHERE id = %s', (task_id,))
         conn.commit()
     except Exception as e:
         print(f"Errore durante l'eliminazione della task: {e}")
@@ -156,7 +178,6 @@ def delete_task(task_id):
 @app.route('/export_word', methods=['GET'])
 def export_word():
     report_data = generate_weekly_report()
-    # Crea un documento Word
     doc = Document()
     doc.add_heading("Report Settimanale delle Task Completate", level=1)
     if not report_data:
@@ -176,30 +197,24 @@ def export_word():
             row_cells[2].text = task['created_at']
             row_cells[3].text = task['started_at'] or "Non applicabile"
             row_cells[4].text = task['completed_at']
-    # Salva il file Word
     word_filename = "weekly_report.docx"
     doc.save(word_filename)
-    # Invia il file Word all'utente
     return send_file(word_filename, as_attachment=True, download_name="weekly_report.docx")
 
 # Route per esportare la Kanban Board in PDF
 @app.route('/export_pdf', methods=['GET'])
 def export_pdf():
     try:
-        # Renderizza il template come stringa HTML
         conn = get_db_connection()
-        try:
-            tasks = conn.execute('SELECT * FROM tasks').fetchall()
-            html_content = render_template('kanban.html', tasks=tasks)
-        finally:
-            conn.close()
-        # Configura pdfkit per convertire HTML in PDF
+        tasks = conn.execute('SELECT * FROM tasks').fetchall()
+        html_content = render_template('kanban.html', tasks=tasks)
         pdf_filename = "kanban_board.pdf"
         pdfkit.from_string(html_content, pdf_filename)
-        # Invia il file PDF all'utente
         return send_file(pdf_filename, as_attachment=True, download_name="kanban_board.pdf")
     except Exception as e:
         return f"Errore durante la generazione del PDF: {str(e)}", 500
+    finally:
+        conn.close()
 
 if __name__ == '__main__':
     print("Route registrate:")
@@ -207,4 +222,4 @@ if __name__ == '__main__':
         print(f"Endpoint: {rule.endpoint}, URL: {rule.rule}, Metodi: {','.join(rule.methods)}")
     init_db()  # Crea il database se non esiste già
     port = int(os.environ.get('PORT', 5000))  # Usa la porta specificata dall'ambiente o la porta 5000
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
