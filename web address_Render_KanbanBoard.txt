@@ -1,0 +1,3 @@
+start comand in (:D//cmd):  python app.py
+
+web adress KanbanBoard: https://kanbanapp-d4h3.onrender.com

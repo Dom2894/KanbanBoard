@@ -1,0 +1,37 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.board {
+    display: flex;
+    gap: 20px;
+}
+
+.column {
+    border: 1px solid #ccc;
+    padding: 10px;
+    min-width: 200px;
+    background-color: #f9f9f9;
+}
+
+h2 {
+    text-align: center;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #e0f7fa;
+    border: 1px solid #b2ebf2;
+    cursor: grab;
+}
+
+li.dragging {
+    opacity: 0.5;
+}

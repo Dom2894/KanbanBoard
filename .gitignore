@@ -1,0 +1,29 @@
+# Ignora cartelle generate automaticamente durante la compilazione
+bin/
+obj/
+temp/
+
+# Ignora file di log e backup
+*.log
+*.tmp
+*.bak
+
+# Ignora file di Visual Studio
+.vs/
+*.suo
+*.user
+*.vscode/
+
+# Ignora file di distribuzione
+Publish/
+published/
+
+# Ignora file di NuGet cache
+packages/
+
+# Ignora file di database locali
+data.db
+
+# Ignora file Python (se presenti)
+__pycache__/
+*.pyc
