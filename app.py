@@ -26,16 +26,44 @@ def get_db_connection():
     else:  # Usa SQLite in locale
         return sqlite3.connect('data.db', check_same_thread=False)
 
+# Funzione generica per eseguire query
+def execute_query(conn, query, params=None):
+    if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
+        cursor = conn.cursor()
+        cursor.execute(query, params or ())
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+    else:  # Se usi PostgreSQL
+        with conn.cursor() as cur:
+            cur.execute(query, params or ())
+            result = cur.fetchall()
+        return result
+
 # Crea il database e le tabelle se non esistono
 def init_db():
     db_url = os.environ.get("DATABASE_URL")
-    if db_url:  # Usa PostgreSQL
-        import psycopg2
-        with psycopg2.connect(db_url, sslmode='require') as conn:
-            with conn.cursor() as cur:
-                cur.execute('''
+    try:
+        if db_url:  # Usa PostgreSQL
+            import psycopg2
+            with psycopg2.connect(db_url, sslmode='require') as conn:
+                with conn.cursor() as cur:
+                    cur.execute('''
+                        CREATE TABLE IF NOT EXISTS tasks (
+                            id SERIAL PRIMARY KEY,
+                            title TEXT NOT NULL,
+                            status TEXT NOT NULL DEFAULT 'To Do',
+                            priority TEXT NOT NULL DEFAULT 'Medium',
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            started_at TIMESTAMP,
+                            completed_at TIMESTAMP
+                        )
+                    ''')
+        else:  # Usa SQLite
+            with sqlite3.connect('data.db') as conn:
+                conn.execute('''
                     CREATE TABLE IF NOT EXISTS tasks (
-                        id SERIAL PRIMARY KEY,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
                         title TEXT NOT NULL,
                         status TEXT NOT NULL DEFAULT 'To Do',
                         priority TEXT NOT NULL DEFAULT 'Medium',
@@ -44,31 +72,27 @@ def init_db():
                         completed_at TIMESTAMP
                     )
                 ''')
-    else:  # Usa SQLite
-        with sqlite3.connect('data.db') as conn:
-            conn.execute('''
-                CREATE TABLE IF NOT EXISTS tasks (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    title TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'To Do',
-                    priority TEXT NOT NULL DEFAULT 'Medium',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    started_at TIMESTAMP,
-                    completed_at TIMESTAMP
-                )
-            ''')
+    except Exception as e:
+        print(f"Errore durante l'inizializzazione del database: {e}")
+        raise
 
 # Genera un report settimanale sulle task completate
 def generate_weekly_report():
     conn = get_db_connection()
     try:
-        tasks = conn.execute('''
+        one_week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+        query = '''
             SELECT title, priority, created_at, started_at, completed_at
             FROM tasks
             WHERE status = 'Done'
-            AND completed_at >= datetime('now', '-7 days')
-        ''').fetchall()
-
+            AND completed_at >= %s
+        ''' if isinstance(conn, sqlite3.Connection) else '''
+            SELECT title, priority, created_at, started_at, completed_at
+            FROM tasks
+            WHERE status = 'Done'
+            AND completed_at >= %s
+        '''
+        tasks = execute_query(conn, query, (one_week_ago,))
         report = []
         for task in tasks:
             if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
@@ -100,13 +124,19 @@ def kanban():
     conn = get_db_connection()
     try:
         if status_filter and priority_filter:
-            tasks = conn.execute('SELECT * FROM tasks WHERE status = ? AND priority = ?', (status_filter, priority_filter)).fetchall()
+            query = "SELECT * FROM tasks WHERE status = %s AND priority = %s"
+            params = (status_filter, priority_filter)
         elif status_filter:
-            tasks = conn.execute('SELECT * FROM tasks WHERE status = ?', (status_filter,)).fetchall()
+            query = "SELECT * FROM tasks WHERE status = %s"
+            params = (status_filter,)
         elif priority_filter:
-            tasks = conn.execute('SELECT * FROM tasks WHERE priority = ?', (priority_filter,)).fetchall()
+            query = "SELECT * FROM tasks WHERE priority = %s"
+            params = (priority_filter,)
         else:
-            tasks = conn.execute('SELECT * FROM tasks').fetchall()
+            query = "SELECT * FROM tasks"
+            params = None
+
+        tasks = execute_query(conn, query, params)
         return render_template('kanban.html', tasks=tasks)
     finally:
         conn.close()
@@ -118,6 +148,7 @@ def add_task():
     priority = request.form.get('priority', 'Medium')  # Priorità predefinita "Medium"
     if not title:
         return redirect(url_for('kanban'))  # Ignora task vuote
+
     conn = get_db_connection()
     try:
         if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
@@ -126,8 +157,11 @@ def add_task():
             with conn.cursor() as cur:
                 cur.execute('INSERT INTO tasks (title, priority) VALUES (%s, %s)', (title, priority))
         conn.commit()
+    except Exception as e:
+        print(f"Errore durante l'inserimento della task: {e}")
     finally:
         conn.close()
+
     return redirect(url_for('kanban'))
 
 # Route per aggiornare lo stato di una task
@@ -155,6 +189,7 @@ def update_task(task_id, new_status):
         print(f"Errore durante l'aggiornamento della task: {e}")
     finally:
         conn.close()
+
     return redirect(url_for('kanban'))
 
 # Route per eliminare una task
@@ -172,6 +207,7 @@ def delete_task(task_id):
         print(f"Errore durante l'eliminazione della task: {e}")
     finally:
         conn.close()
+
     return redirect(url_for('kanban'))
 
 # Route per esportare il report in Word
@@ -197,6 +233,7 @@ def export_word():
             row_cells[2].text = task['created_at']
             row_cells[3].text = task['started_at'] or "Non applicabile"
             row_cells[4].text = task['completed_at']
+
     word_filename = "weekly_report.docx"
     doc.save(word_filename)
     return send_file(word_filename, as_attachment=True, download_name="weekly_report.docx")
@@ -206,7 +243,7 @@ def export_word():
 def export_pdf():
     try:
         conn = get_db_connection()
-        tasks = conn.execute('SELECT * FROM tasks').fetchall()
+        tasks = execute_query(conn, "SELECT * FROM tasks")
         html_content = render_template('kanban.html', tasks=tasks)
         pdf_filename = "kanban_board.pdf"
         pdfkit.from_string(html_content, pdf_filename)
