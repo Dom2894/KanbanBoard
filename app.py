@@ -5,9 +5,9 @@ from datetime import datetime
 import os
 from docx import Document  # Per Word
 import pdfkit  # Per PDF
-import sqlite3 # add fo database
-import DATABASE_URL # add fo database
-from DATABASE_URL import extras # add fo database
+import sqlite3  # add for database
+import DATABASE_URL  # add for database
+from DATABASE_URL import extras  # add for database
 
 app = Flask(__name__)
 
@@ -88,7 +88,6 @@ def generate_weekly_report():
 def kanban():
     status_filter = request.args.get('status', None)  # Filtro per stato
     priority_filter = request.args.get('priority', None)  # Filtro per priorità
-
     conn = get_db_connection()
     try:
         if status_filter and priority_filter:
@@ -157,11 +156,9 @@ def delete_task(task_id):
 @app.route('/export_word', methods=['GET'])
 def export_word():
     report_data = generate_weekly_report()
-
     # Crea un documento Word
     doc = Document()
     doc.add_heading("Report Settimanale delle Task Completate", level=1)
-
     if not report_data:
         doc.add_paragraph("Nessuna task completata negli ultimi 7 giorni.")
     else:
@@ -172,7 +169,6 @@ def export_word():
         hdr_cells[2].text = 'Creato Il'
         hdr_cells[3].text = 'Iniziato Il'
         hdr_cells[4].text = 'Completato Il'
-
         for task in report_data:
             row_cells = table.add_row().cells
             row_cells[0].text = task['title']
@@ -180,11 +176,9 @@ def export_word():
             row_cells[2].text = task['created_at']
             row_cells[3].text = task['started_at'] or "Non applicabile"
             row_cells[4].text = task['completed_at']
-
     # Salva il file Word
     word_filename = "weekly_report.docx"
     doc.save(word_filename)
-
     # Invia il file Word all'utente
     return send_file(word_filename, as_attachment=True, download_name="weekly_report.docx")
 
@@ -199,11 +193,9 @@ def export_pdf():
             html_content = render_template('kanban.html', tasks=tasks)
         finally:
             conn.close()
-
         # Configura pdfkit per convertire HTML in PDF
         pdf_filename = "kanban_board.pdf"
         pdfkit.from_string(html_content, pdf_filename)
-
         # Invia il file PDF all'utente
         return send_file(pdf_filename, as_attachment=True, download_name="kanban_board.pdf")
     except Exception as e:
@@ -213,7 +205,6 @@ if __name__ == '__main__':
     print("Route registrate:")
     for rule in app.url_map.iter_rules():
         print(f"Endpoint: {rule.endpoint}, URL: {rule.rule}, Metodi: {','.join(rule.methods)}")
-
     init_db()  # Crea il database se non esiste già
     port = int(os.environ.get('PORT', 5000))  # Usa la porta specificata dall'ambiente o la porta 5000
     app.run(host='0.0.0.0', port=port, debug=True)
