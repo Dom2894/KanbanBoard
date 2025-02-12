@@ -82,12 +82,12 @@ def generate_weekly_report():
     try:
         one_week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
         query = '''
-            SELECT title, priority, created_at, started_at, completed_at
+            SELECT id, title, priority, created_at, started_at, completed_at
             FROM tasks
             WHERE status = 'Done'
             AND completed_at >= %s
         ''' if isinstance(conn, sqlite3.Connection) else '''
-            SELECT title, priority, created_at, started_at, completed_at
+            SELECT id, title, priority, created_at, started_at, completed_at
             FROM tasks
             WHERE status = 'Done'
             AND completed_at >= %s
@@ -97,14 +97,16 @@ def generate_weekly_report():
         for task in tasks:
             if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
                 task_dict = {
-                    'title': task[0],
-                    'priority': task[1],
-                    'created_at': task[2],
-                    'started_at': task[3],
-                    'completed_at': task[4]
+                    'id': task[0],
+                    'title': task[1],
+                    'priority': task[2],
+                    'created_at': task[3],
+                    'started_at': task[4],
+                    'completed_at': task[5]
                 }
             else:  # Se usi PostgreSQL
                 task_dict = {
+                    'id': task['id'],
                     'title': task['title'],
                     'priority': task['priority'],
                     'created_at': task['created_at'],
