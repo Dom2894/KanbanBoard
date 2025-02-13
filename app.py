@@ -37,7 +37,10 @@ def execute_query(conn, query, params=None):
     else:  # Se usi PostgreSQL
         with conn.cursor() as cur:
             cur.execute(query, params or ())
-            result = cur.fetchall()
+            try:
+                result = cur.fetchall()
+            except Exception:
+                result = None
         return result
 
 # Crea il database e le tabelle se non esistono
@@ -84,13 +87,7 @@ def generate_weekly_report():
         query = '''
             SELECT title, priority, created_at, started_at, completed_at
             FROM tasks
-            WHERE status = 'Done'
-            AND completed_at >= %s
-        ''' if isinstance(conn, sqlite3.Connection) else '''
-            SELECT title, priority, created_at, started_at, completed_at
-            FROM tasks
-            WHERE status = 'Done'
-            AND completed_at >= %s
+            WHERE status = 'Done' AND completed_at >= %s
         '''
         tasks = execute_query(conn, query, (one_week_ago,))
         report = []
@@ -105,11 +102,11 @@ def generate_weekly_report():
                 }
             else:  # Se usi PostgreSQL
                 task_dict = {
-                    'title': task['title'],
-                    'priority': task['priority'],
-                    'created_at': task['created_at'],
-                    'started_at': task['started_at'],
-                    'completed_at': task['completed_at']
+                    'title': task[0],
+                    'priority': task[1],
+                    'created_at': task[2],
+                    'started_at': task[3],
+                    'completed_at': task[4]
                 }
             report.append(task_dict)
         return report
@@ -147,7 +144,6 @@ def add_task():
     priority = request.form.get('priority', 'Medium')  # Priorità predefinita "Medium"
     if not title:
         return redirect(url_for('kanban'))  # Ignora task vuote
-
     conn = get_db_connection()
     try:
         if isinstance(conn, sqlite3.Connection):  # Se usi SQLite
@@ -160,11 +156,10 @@ def add_task():
         print(f"Errore durante l'inserimento della task: {e}")
     finally:
         conn.close()
-
     return redirect(url_for('kanban'))
 
 # Route per aggiornare lo stato di una task
-@app.route('/update_task/<int:task_id>/<new_status>')
+@app.route('/update_task/<int:task_id>/<new_status>', methods=['GET'])
 def update_task(task_id, new_status):
     conn = get_db_connection()
     try:
@@ -188,11 +183,10 @@ def update_task(task_id, new_status):
         print(f"Errore durante l'aggiornamento della task: {e}")
     finally:
         conn.close()
-
     return redirect(url_for('kanban'))
 
 # Route per eliminare una task
-@app.route('/delete_task/<int:task_id>')
+@app.route('/delete_task/<int:task_id>', methods=['GET'])
 def delete_task(task_id):
     conn = get_db_connection()
     try:
@@ -206,7 +200,6 @@ def delete_task(task_id):
         print(f"Errore durante l'eliminazione della task: {e}")
     finally:
         conn.close()
-
     return redirect(url_for('kanban'))
 
 # Route per esportare il report in Word
@@ -232,7 +225,6 @@ def export_word():
             row_cells[2].text = task['created_at']
             row_cells[3].text = task['started_at'] or "Non applicabile"
             row_cells[4].text = task['completed_at']
-
     word_filename = "weekly_report.docx"
     doc.save(word_filename)
     return send_file(word_filename, as_attachment=True, download_name="weekly_report.docx")
