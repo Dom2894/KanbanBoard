@@ -20,10 +20,14 @@ app.jinja_env.filters['strftime'] = strftime_filter
 # Funzione per connettersi al database PostgreSQL
 def get_db_connection():
     db_url = os.environ.get("DATABASE_URL")
-    if db_url:  # Usa PostgreSQL se DATABASE_URL è impostato
+    if not db_url:
+        raise Exception("DATABASE_URL non impostata")
+    try:
+        # Usa sslmode='require' per connessioni esterne sicure
         return psycopg2.connect(db_url, sslmode='require')
-    else:
-        raise Exception("DATABASE_URL non impostato")
+    except psycopg2.OperationalError as e:
+        print(f"Errore durante la connessione al database: {e}")
+        raise
 
 # Funzione generica per eseguire query
 def execute_query(conn, query, params=None):
@@ -31,8 +35,10 @@ def execute_query(conn, query, params=None):
         with conn.cursor() as cur:
             cur.execute(query, params or ())
             try:
+                # Cerca di recuperare i risultati (per query SELECT)
                 result = cur.fetchall()
             except psycopg2.ProgrammingError:
+                # Ignora l'errore se la query non restituisce risultati (es. INSERT, UPDATE, DELETE)
                 result = None
             conn.commit()  # Assicurati di committare le modifiche
             return result
@@ -46,6 +52,7 @@ def init_db():
     if not db_url:
         raise Exception("DATABASE_URL non impostato")
     try:
+        # Connetti al database e crea la tabella tasks
         with psycopg2.connect(db_url, sslmode='require') as conn:
             with conn.cursor() as cur:
                 cur.execute('''
@@ -59,6 +66,7 @@ def init_db():
                         completed_at TIMESTAMP
                     )
                 ''')
+                conn.commit()  # Commit necessario per creare la tabella
     except Exception as e:
         print(f"Errore durante l'inizializzazione del database: {e}")
         raise
@@ -79,9 +87,9 @@ def generate_weekly_report():
             task_dict = {
                 'title': task[0],
                 'priority': task[1],
-                'created_at': task[2],
-                'started_at': task[3],
-                'completed_at': task[4]
+                'created_at': task[2].strftime('%d/%m/%Y %H:%M') if task[2] else "Non applicabile",
+                'started_at': task[3].strftime('%d/%m/%Y %H:%M') if task[3] else "Non applicabile",
+                'completed_at': task[4].strftime('%d/%m/%Y %H:%M') if task[4] else "Non applicabile"
             }
             report.append(task_dict)
         return report
@@ -184,8 +192,8 @@ def export_word():
             row_cells[0].text = task['title']
             row_cells[1].text = task['priority']
             row_cells[2].text = task['created_at']
-            row_cells[3].text = task['started_at'] or "Non applicabile"
-            row_cells[4].text = task['completed_at'] or "Non applicabile"
+            row_cells[3].text = task['started_at']
+            row_cells[4].text = task['completed_at']
     word_filename = "weekly_report.docx"
     doc.save(word_filename)
     return send_file(word_filename, as_attachment=True, download_name="weekly_report.docx")
