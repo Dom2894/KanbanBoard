@@ -3,8 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, s
 import os
 from datetime import datetime, timedelta
 import psycopg2  # Per PostgreSQL
-from docx import Document  # Per Word
-import pdfkit  # Per PDF
 
 app = Flask(__name__)
 
@@ -35,10 +33,8 @@ def execute_query(conn, query, params=None):
         with conn.cursor() as cur:
             cur.execute(query, params or ())
             try:
-                # Cerca di recuperare i risultati (per query SELECT)
                 result = cur.fetchall()
             except psycopg2.ProgrammingError:
-                # Ignora l'errore se la query non restituisce risultati (es. INSERT, UPDATE, DELETE)
                 result = None
             conn.commit()  # Assicurati di committare le modifiche
             return result
@@ -50,9 +46,8 @@ def execute_query(conn, query, params=None):
 def init_db():
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
-        raise Exception("DATABASE_URL non impostato")
+        raise Exception("DATABASE_URL non impostata")
     try:
-        # Connetti al database e crea la tabella tasks
         with psycopg2.connect(db_url, sslmode='require') as conn:
             with conn.cursor() as cur:
                 cur.execute('''
@@ -66,7 +61,6 @@ def init_db():
                         completed_at TIMESTAMP
                     )
                 ''')
-                conn.commit()  # Commit necessario per creare la tabella
     except Exception as e:
         print(f"Errore durante l'inizializzazione del database: {e}")
         raise
@@ -79,7 +73,8 @@ def generate_weekly_report():
         query = '''
             SELECT title, priority, created_at, started_at, completed_at
             FROM tasks
-            WHERE status = 'Done' AND completed_at >= %s
+            WHERE status = 'Done'
+            AND completed_at >= %s
         '''
         tasks = execute_query(conn, query, (one_week_ago,))
         report = []
@@ -174,6 +169,7 @@ def delete_task(task_id):
 # Route per esportare il report in Word
 @app.route('/export_word', methods=['GET'])
 def export_word():
+    from docx import Document  # Per Word
     report_data = generate_weekly_report()
     doc = Document()
     doc.add_heading("Report Settimanale delle Task Completate", level=1)
@@ -201,6 +197,7 @@ def export_word():
 # Route per esportare la Kanban Board in PDF
 @app.route('/export_pdf', methods=['GET'])
 def export_pdf():
+    import pdfkit  # Per PDF
     try:
         conn = get_db_connection()
         tasks = execute_query(conn, "SELECT * FROM tasks")
