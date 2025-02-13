@@ -21,7 +21,6 @@ def get_db_connection():
     if not db_url:
         raise Exception("DATABASE_URL non impostata")
     try:
-        # Usa sslmode='require' per connessioni esterne sicure
         return psycopg2.connect(db_url, sslmode='require')
     except psycopg2.OperationalError as e:
         print(f"Errore durante la connessione al database: {e}")
@@ -36,7 +35,7 @@ def execute_query(conn, query, params=None):
                 result = cur.fetchall()
             except psycopg2.ProgrammingError:
                 result = None
-            conn.commit()  # Assicurati di committare le modifiche
+            conn.commit()
             return result
     except Exception as e:
         print(f"Errore durante l'esecuzione della query: {e}")
