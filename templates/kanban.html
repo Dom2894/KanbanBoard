@@ -5,39 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban Board</title>
     <style>
-        /* Tema Moderno Elegante */
+        /* Tema Scuro Moderno */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
             padding: 0;
-            background-color: #f4f9fd; /* Sfondo chiaro azzurro */
-            color: #333; /* Testo leggermente scuro */
+            background-color: #2c3e50; /* Sfondo scuro */
+            color: #ecf0f1; /* Testo chiaro */
         }
         h1 {
             text-align: center;
-            color: #007BFF; /* Blu acceso */
+            color: #3498db; /* Blu acceso */
         }
         .container {
             display: flex;
             justify-content: space-around;
+            margin-top: 20px;
         }
         .column {
             width: 30%;
-            border: 1px solid #d1e6fa; /* Bordo chiaro azzurro */
+            border: 1px solid #34495e; /* Bordo scuro */
             padding: 15px;
             border-radius: 8px;
-            background-color: #ffffff; /* Background colonne bianco */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Effetto ombra leggero */
+            background-color: #34495e; /* Background colonne */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Effetto ombra */
         }
         .column h2 {
             margin-bottom: 10px;
-            color: #0056b3; /* Blu scuro */
+            color: #e74c3c; /* Rosso acceso */
         }
         .task {
-            border: 1px solid #d1e6fa; /* Bordo task chiaro azzurro */
+            border: 1px solid #2c3e50; /* Bordo task */
             padding: 10px;
             margin-bottom: 10px;
-            background-color: #e8f5fe; /* Background task chiaro azzurro */
+            background-color: #34495e; /* Background task */
             border-radius: 6px;
         }
         .task p {
@@ -47,7 +48,6 @@
         .actions {
             display: flex;
             gap: 8px;
-            margin-top: 5px;
         }
         .actions a {
             text-decoration: none;
@@ -57,13 +57,13 @@
             font-weight: bold;
         }
         .start {
-            background-color: #007BFF; /* Blu */
+            background-color: #f1c40f; /* Giallo */
         }
         .complete {
-            background-color: #28a745; /* Verde acqua */
+            background-color: #2ecc71; /* Verde acqua */
         }
         .delete {
-            background-color: #dc3545; /* Rosso */
+            background-color: #e74c3c; /* Rosso */
         }
         form {
             text-align: center;
@@ -72,21 +72,21 @@
         input[type="text"] {
             padding: 8px;
             width: 70%;
-            background-color: #ffffff; /* Campo input bianco */
-            color: #333; /* Testo input leggermente scuro */
-            border: 1px solid #d1e6fa; /* Bordo input chiaro azzurro */
+            background-color: #34495e; /* Campo input scuro */
+            color: #ecf0f1; /* Testo input chiaro */
+            border: 1px solid #2c3e50; /* Bordo input */
             border-radius: 4px;
         }
         select {
             padding: 8px;
-            background-color: #ffffff; /* Select bianco */
-            color: #333; /* Testo select leggermente scuro */
-            border: 1px solid #d1e6fa; /* Bordo select chiaro azzurro */
+            background-color: #34495e; /* Select scuro */
+            color: #ecf0f1; /* Testo select chiaro */
+            border: 1px solid #2c3e50; /* Bordo select */
             border-radius: 4px;
         }
         button {
             padding: 8px 12px;
-            background-color: #007BFF; /* Bottone blu */
+            background-color: #3498db; /* Bottone blu */
             color: white;
             border: none;
             border-radius: 4px;
@@ -94,18 +94,32 @@
             font-weight: bold;
         }
         button:hover {
-            background-color: #0056b3; /* Effetto hover blu scuro */
+            background-color: #2980b9; /* Effetto hover */
         }
     </style>
 </head>
 <body>
     <h1>Kanban Board</h1>
 
+    <!-- Sezione di Aggiunta Task -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2>Aggiungi Task</h2>
+        <form action="/add_task" method="post">
+            <input type="text" name="title" placeholder="Titolo" required>
+            <select name="priority">
+                <option value="Alta">Alta</option>
+                <option value="Media" selected>Media</option>
+                <option value="Bassa">Bassa</option>
+            </select>
+            <button type="submit">Aggiungi</button>
+        </form>
+    </div>
+
+    <!-- Esportazione e Filtraggio -->
     <div style="text-align: center; margin-bottom: 20px;">
         <a href="/export_word" class="btn">Esporta Report in Word</a>
         <a href="/export_pdf" class="btn">Esporta Schermata in PDF</a>
     </div>
-
     <form action="/" method="get" style="text-align: center; margin-bottom: 20px;">
         <label for="status">Filtra per stato:</label>
         <select name="status" id="status">
@@ -124,6 +138,7 @@
         <button type="submit">Applica Filtro</button>
     </form>
 
+    <!-- Dashboard (To Do, In Progress, Done) -->
     <div class="container">
         <!-- To Do Column -->
         <div class="column">
@@ -172,16 +187,5 @@
             {% endfor %}
         </div>
     </div>
-
-    <h2 style="text-align: center; margin-top: 20px;">Aggiungi Task</h2>
-    <form action="/add_task" method="post" style="text-align: center;">
-        <input type="text" name="title" placeholder="Titolo" required>
-        <select name="priority">
-            <option value="Alta">Alta</option>
-            <option value="Media" selected>Media</option>
-            <option value="Bassa">Bassa</option>
-        </select>
-        <button type="submit">Aggiungi</button>
-    </form>
 </body>
 </html>
