@@ -4,13 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban Board</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+        }
+        .column {
+            width: 30%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .column h2 {
+            margin-bottom: 10px;
+        }
+        .task {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+        }
+        .task p {
+            margin: 0;
+            line-height: 1.5;
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        .actions a {
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+        }
+        .start {
+            background-color: orange;
+        }
+        .complete {
+            background-color: green;
+        }
+        .delete {
+            background-color: red;
+        }
+        form {
+            text-align: center;
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            width: 70%;
+        }
+        select {
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>Kanban Board</h1>
-    <a href="/export_word">Esporta Report in Word</a>
-    <a href="/export_pdf">Esporta Schermata in PDF</a>
 
-    <form action="/" method="get">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <a href="/export_word" class="btn">Esporta Report in Word</a>
+        <a href="/export_pdf" class="btn">Esporta Schermata in PDF</a>
+    </div>
+
+    <form action="/" method="get" style="text-align: center; margin-bottom: 20px;">
         <label for="status">Filtra per stato:</label>
         <select name="status" id="status">
             <option value="">Tutti</option>
@@ -28,46 +99,57 @@
         <button type="submit">Applica Filtro</button>
     </form>
 
-    <h2>To Do</h2>
-    <ul>
-        {% for task in tasks if task.status == 'To Do' %}
-            <li>
-                {{ task.title }}<br>
-                Creato il: {{ task.created_at|strftime }}<br>
-                Priorità: {{ task.priority }}
-                <a href="/update_task/{{ task.id }}/In Progress">Start</a>
-                <a href="/delete_task/{{ task.id }}">Delete</a>
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <!-- To Do Column -->
+        <div class="column">
+            <h2>To Do</h2>
+            {% for task in tasks if task.status == 'To Do' %}
+                <div class="task">
+                    <p><strong>{{ task.title }}</strong></p>
+                    <p>Creato il: {{ task.created_at|strftime }}</p>
+                    <p>Priorità: {{ task.priority }}</p>
+                    <div class="actions">
+                        <a href="/update_task/{{ task.id }}/In Progress" class="start">Start</a>
+                        <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
 
-    <h2>In Progress</h2>
-    <ul>
-        {% for task in tasks if task.status == 'In Progress' %}
-            <li>
-                {{ task.title }}<br>
-                Creato il: {{ task.created_at|strftime }}<br>
-                Priorità: {{ task.priority }}
-                <a href="/update_task/{{ task.id }}/Done">Complete</a>
-                <a href="/delete_task/{{ task.id }}">Delete</a>
-            </li>
-        {% endfor %}
-    </ul>
+        <!-- In Progress Column -->
+        <div class="column">
+            <h2>In Progress</h2>
+            {% for task in tasks if task.status == 'In Progress' %}
+                <div class="task">
+                    <p><strong>{{ task.title }}</strong></p>
+                    <p>Creato il: {{ task.created_at|strftime }}</p>
+                    <p>Priorità: {{ task.priority }}</p>
+                    <div class="actions">
+                        <a href="/update_task/{{ task.id }}/Done" class="complete">Complete</a>
+                        <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
 
-    <h2>Done</h2>
-    <ul>
-        {% for task in tasks if task.status == 'Done' %}
-            <li>
-                {{ task.title }}<br>
-                Creato il: {{ task.created_at|strftime }}<br>
-                Priorità: {{ task.priority }}
-                <a href="/delete_task/{{ task.id }}">Delete</a>
-            </li>
-        {% endfor %}
-    </ul>
+        <!-- Done Column -->
+        <div class="column">
+            <h2>Done</h2>
+            {% for task in tasks if task.status == 'Done' %}
+                <div class="task">
+                    <p><strong>{{ task.title }}</strong></p>
+                    <p>Creato il: {{ task.created_at|strftime }}</p>
+                    <p>Priorità: {{ task.priority }}</p>
+                    <div class="actions">
+                        <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 
-    <h2>Aggiungi Task</h2>
-    <form action="/add_task" method="post">
+    <h2 style="text-align: center; margin-top: 20px;">Aggiungi Task</h2>
+    <form action="/add_task" method="post" style="text-align: center;">
         <input type="text" name="title" placeholder="Titolo" required>
         <select name="priority">
             <option value="Alta">Alta</option>
