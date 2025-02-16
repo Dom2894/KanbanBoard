@@ -8,7 +8,7 @@
         /* Tema Scuro Moderno */
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
             padding: 0;
             background-color: #2c3e50; /* Sfondo scuro */
             color: #ecf0f1; /* Testo chiaro */
@@ -16,38 +16,122 @@
         h1 {
             text-align: center;
             color: #3498db; /* Blu acceso */
-        }
-        .container {
-            display: flex;
-            justify-content: space-around;
             margin-top: 20px;
         }
-        .column {
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #2980b9; /* Blu scuro */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header a {
+            text-decoration: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: #34495e;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .header a:hover {
+            background-color: #2c3e50;
+        }
+        .filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filters select, .filters button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            background-color: #34495e;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .filters button:hover {
+            background-color: #2c3e50;
+        }
+        .add-task {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .add-task form {
+            display: flex;
+            gap: 10px;
+        }
+        .add-task input[type="text"] {
+            padding: 10px;
             width: 30%;
-            border: 1px solid #34495e; /* Bordo scuro */
-            padding: 15px;
+            border: none;
+            border-radius: 4px;
+            background-color: #34495e;
+            color: white;
+            font-size: 14px;
+        }
+        .add-task select {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #34495e;
+            color: white;
+            font-size: 14px;
+        }
+        .add-task button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #3498db;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .add-task button:hover {
+            background-color: #2980b9;
+        }
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .column {
+            width: calc(33.33% - 20px);
+            margin-bottom: 20px;
+            border: 1px solid #34495e;
             border-radius: 8px;
-            background-color: #34495e; /* Background colonne */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Effetto ombra */
+            background-color: #34495e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .column h2 {
-            margin-bottom: 10px;
-            color: #e74c3c; /* Rosso acceso */
+            text-align: center;
+            padding: 10px;
+            background-color: #2c3e50;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            color: #ecf0f1;
+        }
+        .task-list {
+            padding: 10px;
         }
         .task {
-            border: 1px solid #2c3e50; /* Bordo task */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 10px;
             margin-bottom: 10px;
-            background-color: #34495e; /* Background task */
+            border: 1px solid #2c3e50;
             border-radius: 6px;
+            background-color: #34495e;
         }
         .task p {
             margin: 0;
-            line-height: 1.5;
-        }
-        .actions {
-            display: flex;
-            gap: 8px;
         }
         .actions a {
             text-decoration: none;
@@ -56,135 +140,120 @@
             color: white;
             font-weight: bold;
         }
-        .start {
+        .actions .start {
             background-color: #f1c40f; /* Giallo */
         }
-        .complete {
+        .actions .complete {
             background-color: #2ecc71; /* Verde acqua */
         }
-        .delete {
+        .actions .delete {
             background-color: #e74c3c; /* Rosso */
         }
-        form {
-            text-align: center;
-            margin-top: 20px;
-        }
-        input[type="text"] {
-            padding: 8px;
-            width: 70%;
-            background-color: #34495e; /* Campo input scuro */
-            color: #ecf0f1; /* Testo input chiaro */
-            border: 1px solid #2c3e50; /* Bordo input */
-            border-radius: 4px;
-        }
-        select {
-            padding: 8px;
-            background-color: #34495e; /* Select scuro */
-            color: #ecf0f1; /* Testo select chiaro */
-            border: 1px solid #2c3e50; /* Bordo select */
-            border-radius: 4px;
-        }
-        button {
-            padding: 8px 12px;
-            background-color: #3498db; /* Bottone blu */
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #2980b9; /* Effetto hover */
+        .actions a:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
     <h1>Kanban Board</h1>
 
+    <!-- Header con Esportazione e Filtraggio -->
+    <div class="header">
+        <div class="export-buttons">
+            <a href="/export_word">Esporta Report in Word</a>
+            <a href="/export_pdf">Esporta Schermata in PDF</a>
+        </div>
+        <div class="filters">
+            <form action="/" method="get">
+                <select name="status">
+                    <option value="">Tutti</option>
+                    <option value="To Do">To Do</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Done">Done</option>
+                </select>
+                <select name="priority">
+                    <option value="">Tutte</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Bassa">Bassa</option>
+                </select>
+                <button type="submit">Applica Filtro</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Sezione di Aggiunta Task -->
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h2>Aggiungi Task</h2>
+    <div class="add-task">
         <form action="/add_task" method="post">
-            <input type="text" name="title" placeholder="Titolo" required>
+            <input type="text" name="title" placeholder="Titolo della task" required>
             <select name="priority">
                 <option value="Alta">Alta</option>
                 <option value="Media" selected>Media</option>
                 <option value="Bassa">Bassa</option>
             </select>
-            <button type="submit">Aggiungi</button>
+            <button type="submit">Aggiungi Task</button>
         </form>
     </div>
 
-    <!-- Esportazione e Filtraggio -->
-    <div style="text-align: center; margin-bottom: 20px;">
-        <a href="/export_word" class="btn">Esporta Report in Word</a>
-        <a href="/export_pdf" class="btn">Esporta Schermata in PDF</a>
-    </div>
-    <form action="/" method="get" style="text-align: center; margin-bottom: 20px;">
-        <label for="status">Filtra per stato:</label>
-        <select name="status" id="status">
-            <option value="">Tutti</option>
-            <option value="To Do">To Do</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
-        </select>
-        <label for="priority">Filtra per priorità:</label>
-        <select name="priority" id="priority">
-            <option value="">Tutte</option>
-            <option value="Alta">Alta</option>
-            <option value="Media">Media</option>
-            <option value="Bassa">Bassa</option>
-        </select>
-        <button type="submit">Applica Filtro</button>
-    </form>
-
     <!-- Dashboard (To Do, In Progress, Done) -->
-    <div class="container">
+    <div class="dashboard">
         <!-- To Do Column -->
         <div class="column">
             <h2>To Do</h2>
-            {% for task in tasks if task.status == 'To Do' %}
-                <div class="task">
-                    <p><strong>{{ task.title }}</strong></p>
-                    <p>Creato il: {{ task.created_at|strftime }}</p>
-                    <p>Priorità: {{ task.priority }}</p>
-                    <div class="actions">
-                        <a href="/update_task/{{ task.id }}/In Progress" class="start">Start</a>
-                        <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+            <div class="task-list">
+                {% for task in tasks if task.status == 'To Do' %}
+                    <div class="task">
+                        <div>
+                            <p><strong>{{ task.title }}</strong></p>
+                            <p>Creato il: {{ task.created_at|strftime }}</p>
+                            <p>Priorità: {{ task.priority }}</p>
+                        </div>
+                        <div class="actions">
+                            <a href="/update_task/{{ task.id }}/In Progress" class="start">Start</a>
+                            <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         </div>
 
         <!-- In Progress Column -->
         <div class="column">
             <h2>In Progress</h2>
-            {% for task in tasks if task.status == 'In Progress' %}
-                <div class="task">
-                    <p><strong>{{ task.title }}</strong></p>
-                    <p>Creato il: {{ task.created_at|strftime }}</p>
-                    <p>Priorità: {{ task.priority }}</p>
-                    <div class="actions">
-                        <a href="/update_task/{{ task.id }}/Done" class="complete">Complete</a>
-                        <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+            <div class="task-list">
+                {% for task in tasks if task.status == 'In Progress' %}
+                    <div class="task">
+                        <div>
+                            <p><strong>{{ task.title }}</strong></p>
+                            <p>Creato il: {{ task.created_at|strftime }}</p>
+                            <p>Priorità: {{ task.priority }}</p>
+                        </div>
+                        <div class="actions">
+                            <a href="/update_task/{{ task.id }}/Done" class="complete">Complete</a>
+                            <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Done Column -->
         <div class="column">
             <h2>Done</h2>
-            {% for task in tasks if task.status == 'Done' %}
-                <div class="task">
-                    <p><strong>{{ task.title }}</strong></p>
-                    <p>Creato il: {{ task.created_at|strftime }}</p>
-                    <p>Priorità: {{ task.priority }}</p>
-                    <div class="actions">
-                        <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+            <div class="task-list">
+                {% for task in tasks if task.status == 'Done' %}
+                    <div class="task">
+                        <div>
+                            <p><strong>{{ task.title }}</strong></p>
+                            <p>Creato il: {{ task.created_at|strftime }}</p>
+                            <p>Priorità: {{ task.priority }}</p>
+                        </div>
+                        <div class="actions">
+                            <a href="/delete_task/{{ task.id }}" class="delete">Delete</a>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         </div>
     </div>
 </body>
