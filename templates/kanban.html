@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban Board</title>
     <style>
+        /* Tema Moderno Elegante */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            background-color: #f4f4f4;
+            padding: 0;
+            background-color: #f4f9fd; /* Sfondo chiaro azzurro */
+            color: #333; /* Testo leggermente scuro */
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: #007BFF; /* Blu acceso */
         }
         .container {
             display: flex;
@@ -20,22 +23,22 @@
         }
         .column {
             width: 30%;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d1e6fa; /* Bordo chiaro azzurro */
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ffffff; /* Background colonne bianco */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Effetto ombra leggero */
         }
         .column h2 {
             margin-bottom: 10px;
-            color: #555;
+            color: #0056b3; /* Blu scuro */
         }
         .task {
-            border: 1px solid #ddd;
+            border: 1px solid #d1e6fa; /* Bordo task chiaro azzurro */
             padding: 10px;
             margin-bottom: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
+            background-color: #e8f5fe; /* Background task chiaro azzurro */
+            border-radius: 6px;
         }
         .task p {
             margin: 0;
@@ -43,36 +46,55 @@
         }
         .actions {
             display: flex;
-            gap: 5px;
+            gap: 8px;
+            margin-top: 5px;
         }
         .actions a {
             text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 3px;
+            padding: 6px 12px;
+            border-radius: 4px;
             color: white;
+            font-weight: bold;
         }
         .start {
-            background-color: orange;
+            background-color: #007BFF; /* Blu */
         }
         .complete {
-            background-color: green;
+            background-color: #28a745; /* Verde acqua */
         }
         .delete {
-            background-color: red;
+            background-color: #dc3545; /* Rosso */
         }
         form {
             text-align: center;
             margin-top: 20px;
         }
         input[type="text"] {
-            padding: 5px;
+            padding: 8px;
             width: 70%;
+            background-color: #ffffff; /* Campo input bianco */
+            color: #333; /* Testo input leggermente scuro */
+            border: 1px solid #d1e6fa; /* Bordo input chiaro azzurro */
+            border-radius: 4px;
         }
         select {
-            padding: 5px;
+            padding: 8px;
+            background-color: #ffffff; /* Select bianco */
+            color: #333; /* Testo select leggermente scuro */
+            border: 1px solid #d1e6fa; /* Bordo select chiaro azzurro */
+            border-radius: 4px;
         }
         button {
-            padding: 5px 10px;
+            padding: 8px 12px;
+            background-color: #007BFF; /* Bottone blu */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3; /* Effetto hover blu scuro */
         }
     </style>
 </head>
