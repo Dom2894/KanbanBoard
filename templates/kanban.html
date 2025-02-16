@@ -55,35 +55,37 @@
         .filters button:hover {
             background-color: #2c3e50;
         }
+
+        /* Sezione di Aggiunta Task */
         .add-task {
             display: flex;
-            justify-content: center;
+            justify-content: space-between; /* Distribuisce gli elementi orizzontalmente */
             align-items: center;
+            padding: 10px 20px;
+            background-color: #34495e;
             margin: 20px 0;
-        }
-        .add-task form {
-            display: flex;
-            gap: 10px;
         }
         .add-task input[type="text"] {
             padding: 10px;
-            width: 30%;
+            width: 70%; /* Occupa il 70% della larghezza */
             border: none;
             border-radius: 4px;
-            background-color: #34495e;
+            background-color: #2c3e50;
             color: white;
             font-size: 14px;
         }
         .add-task select {
             padding: 10px;
+            width: 15%; /* Occupa il 15% della larghezza */
             border: none;
             border-radius: 4px;
-            background-color: #34495e;
+            background-color: #2c3e50;
             color: white;
             font-size: 14px;
         }
         .add-task button {
             padding: 10px 20px;
+            width: 15%; /* Occupa il 15% della larghezza */
             border: none;
             border-radius: 4px;
             background-color: #3498db;
@@ -95,6 +97,8 @@
         .add-task button:hover {
             background-color: #2980b9;
         }
+
+        /* Dashboard */
         .dashboard {
             display: flex;
             flex-wrap: wrap;
@@ -182,16 +186,16 @@
         </div>
     </div>
 
-    <!-- Sezione di Aggiunta Task -->
+    <!-- Sezione di Aggiunta Task (Occupa tutta la larghezza) -->
     <div class="add-task">
-        <form action="/add_task" method="post">
-            <input type="text" name="title" placeholder="Titolo della task" required>
-            <select name="priority">
+        <form action="/add_task" method="post" style="display: flex; width: 100%;">
+            <input type="text" name="title" placeholder="Task" required style="flex: 1;"> <!-- Campo "Task" -->
+            <select name="priority" style="flex: 0 0 150px;"> <!-- Selezione Priorità -->
                 <option value="Alta">Alta</option>
                 <option value="Media" selected>Media</option>
                 <option value="Bassa">Bassa</option>
             </select>
-            <button type="submit">Aggiungi Task</button>
+            <button type="submit" style="flex: 0 0 150px;">Aggiungi Task</button> <!-- Bottone Aggiungi -->
         </form>
     </div>
 
